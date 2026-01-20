@@ -5,29 +5,42 @@ on:
 jobs:
   download:
     runs-on: ubuntu-latest
+    # Added a timeout because 1.6GB+ files can sometimes take a while
+    timeout-minutes: 30 
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          lfs: true # Enables LFS support for the checkout
+          lfs: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 # Fetches all history to prevent push errors
 
       - name: Install and Init LFS
         run: |
           git lfs install
-          # Tell LFS to track specific file types (e.g., .zip, .mp4, .iso)
-          # Use "*" to track the specific file you are about to download
-          git lfs track "*.mkv" 
+          git lfs track "*.mkv"
+          git lfs track "*.mp4"
           git add .gitattributes
 
       - name: Download Large File
         run: |
-          # Replace with your URL and desired filename
+          # Replace the URL below with your actual movie link
           curl -L -o "F1.The.Movi e.2025.WEBRip.Hindi.Clean. +.English.720p.X264.AVC.mkv" "https://publicfiletolinkbotsvhshs-82bc20e41c1f.herokuapp.com/63003/F1.The.Movie.2025.WEBRip.Hindi.Clean.%2B.English.720p.X264.AVC.mkv?hash=AgADMh"
 
       - name: Commit and Push to LFS
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
+          
           git add .
-          git commit -m "Add large file via LFS"
-          git push
+          git commit -m "Add movie file via LFS" || echo "No changes to commit"
+          
+          # Force push to overwrite history conflicts and ensure the file lands
+          git push origin main --force
+
+      - name: Cleanup Runner
+        if: always() # This runs even if the push fails
+        run: |
+          rm -rf *
+          echo "Workspace cleared."
