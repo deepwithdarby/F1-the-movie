@@ -1,0 +1,33 @@
+name: Remote Download (LFS Enabled)
+on: 
+  workflow_dispatch:
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true # Enables LFS support for the checkout
+
+      - name: Install and Init LFS
+        run: |
+          git lfs install
+          # Tell LFS to track specific file types (e.g., .zip, .mp4, .iso)
+          # Use "*" to track the specific file you are about to download
+          git lfs track "*.mkv" 
+          git add .gitattributes
+
+      - name: Download Large File
+        run: |
+          # Replace with your URL and desired filename
+          curl -L -o "F1.The.Movi e.2025.WEBRip.Hindi.Clean. +.English.720p.X264.AVC.mkv" "https://file-to-link-x-c97f657694b4.herokuapp.com/dl/696f8ad1baead7f84f756fd1"
+
+      - name: Commit and Push to LFS
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add .
+          git commit -m "Add large file via LFS"
+          git push
